@@ -7,14 +7,14 @@ Automatically save model checkpoints during training.
 """
 
 import os
-import shutil
 import warnings
 import re
 
 import numpy as np
 
-from pytorch_lightning.callbacks.base import Callback
 from pytorch_lightning import _logger as log
+from pytorch_lightning.callbacks.base import Callback
+from pytorch_lightning.loggers import rank_zero_only
 
 
 class ModelCheckpoint(Callback):
