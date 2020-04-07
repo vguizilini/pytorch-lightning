@@ -14,7 +14,7 @@ import numpy as np
 
 from pytorch_lightning import _logger as log
 from pytorch_lightning.callbacks.base import Callback
-from pytorch_lightning.loggers import rank_zero_only
+from pytorch_lightning.utilities.distributed import rank_zero_only
 
 
 class ModelCheckpoint(Callback):
@@ -87,6 +87,7 @@ class ModelCheckpoint(Callback):
                 f"Checkpoint directory {filepath} exists and is not empty with save_top_k != 0."
                 "All files in this directory will be deleted when a checkpoint is saved!"
             )
+        self._rank = 0
 
         self.monitor = monitor
         self.verbose = verbose
@@ -121,6 +122,16 @@ class ModelCheckpoint(Callback):
             mode = 'auto'
 
         self.monitor_op, self.kth_value, self.mode = mode_dict[mode]
+
+    @property
+    def rank(self) -> int:
+        """Process rank. In general, metrics should only be logged by the process with rank 0."""
+        return self._rank
+
+    @rank.setter
+    def rank(self, value: int) -> None:
+        """Set the process rank."""
+        self._rank = value
 
     def _del_model(self, filepath):
         try:
@@ -182,6 +193,7 @@ class ModelCheckpoint(Callback):
         filepath = os.path.join(self.dirpath, self.prefix + filename + str_ver + '.ckpt')
         return filepath
 
+    @rank_zero_only
     def on_validation_end(self, trainer, pl_module):
         # only run on main process
         if trainer.proc_rank != 0:
