@@ -781,7 +781,7 @@ class Trainer(
             if hasattr(ref_model, "hparams"):
                 self.logger.log_hyperparams(ref_model.hparams)
 
-            self.logger.save()
+            # self.logger.save()
 
         if self.use_ddp or self.use_ddp2:
             torch_distrib.barrier()
